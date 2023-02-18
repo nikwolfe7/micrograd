@@ -24,6 +24,7 @@ class Value:
         return f"Value(data={self.data})"
 
     def _autograd(self, func, args, wrt):
+        """ Auto gradient function for complex derivatives """
         # find which arg we're deriving with respect to
         h_args = []
         for arg in args:
@@ -65,12 +66,8 @@ class Value:
         out = Value(v, (self, other), '*')
 
         def _backward():
-            if self.do_autograd:
-                self.grad += self._autograd(_mul, (self, other), wrt=self) * out.grad
-                other.grad += self._autograd(_mul, (self, other), wrt=other) * out.grad
-            else:
-                self.grad += other.data * out.grad
-                other.grad += self.data * out.grad
+            self.grad += other.data * out.grad
+            other.grad += self.data * out.grad
 
         out._backward = _backward
         return out
@@ -197,11 +194,11 @@ class Value:
     def __radd__(self, other):  # other is self
         return self + other
 
-    def __rsub__(self, other): # other - self
+    def __rsub__(self, other):  # other - self
         return other + (-self)
 
-    def __rtruediv__(self, other): # other / self
-        return other * self**-1
+    def __rtruediv__(self, other):  # other / self
+        return other * self ** -1
 
     def backward(self):
         topo = []
@@ -220,4 +217,3 @@ class Value:
         self.grad = 1.0
         for val in reversed(topo):
             val._backward()
-

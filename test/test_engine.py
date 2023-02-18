@@ -64,7 +64,7 @@ class TestValue(unittest.TestCase):
         assert abs(amg.grad - apt.grad.item()) <= tol
 
     def test_relu(self):
-        Value.do_autograd = False
+        Value.do_autograd = True
         a = Value(-4.0)
         b = Value(1.0)
         c = 0.3 * a + 0.5 * b + 1.0
@@ -117,28 +117,33 @@ class TestValue(unittest.TestCase):
 
     def test_sanity_check(self):
         Value.do_autograd = True
+
+        # ridiculous expression to test everything
         x = Value(-4.0)
         z = 2 * x + 2 + x
-        # q = z.relu() + z * x
-        # h = (z * z).relu()
-        q = z.tanh() + z * x
-        h = (z * z).tanh()
-        # q = z.softplus() + z * x
-        # h = (z * z).softplus()
-        y = h + q + q * x
+        q = z.relu() + z * x
+        h = (z * z).relu()
+        a = z.tanh() + z * x
+        b = (z * z).tanh()
+        c = z.softplus() + z * x
+        d = (z * z).softplus()
+        y = (h + q + q * x + a * b + c * d).sigmoid()
+
         y.backward()
         xmg, ymg = x, y
 
+        # ridiculous expression to test everything
         x = torch.Tensor([-4.0]).double()
         x.requires_grad = True
         z = 2 * x + 2 + x
-        # q = z.relu() + z * x
-        # h = (z * z).relu()
-        q = z.tanh() + z * x
-        h = (z * z).tanh()
-        # q = Softplus()(z) + z * x
-        # h = Softplus()(z * z)
-        y = h + q + q * x
+        q = z.relu() + z * x
+        h = (z * z).relu()
+        a = z.tanh() + z * x
+        b = (z * z).tanh()
+        c = Softplus()(z) + z * x
+        d = Softplus()(z * z)
+        y = Sigmoid()(h + q + q * x + a * b + c * d)
+
         y.backward()
         xpt, ypt = x, y
 
@@ -151,16 +156,16 @@ class TestValue(unittest.TestCase):
         assert abs(xmg.grad - xpt.grad.item()) <= tolerance
 
     def test_more_ops(self):
+        Value.do_autograd = True
+        # even more ridiculous expression to test everything
         a = Value(-4.0)
         b = Value(2.0)
         c = a + b
         d = a * b + b ** 3
         c += c + 1
         c += 1 + c + (-a)
-        # d += d * 2 + (b + a).relu()
-        # d += 3 * d + (b - a).relu()
-        d += d * 2 + (b + a).tanh()
-        d += 3 * d + (b - a).tanh()
+        d += d * 2 + (b + a).relu()
+        d += 3 * d + (b - a).relu()
         e = c - d
         f = e ** 2
         g = f / 2.0
@@ -168,6 +173,7 @@ class TestValue(unittest.TestCase):
         g.backward()
         amg, bmg, gmg = a, b, g
 
+        # even more ridiculous expression to test everything
         a = torch.Tensor([-4.0]).double()
         b = torch.Tensor([2.0]).double()
         a.requires_grad = True
@@ -176,10 +182,8 @@ class TestValue(unittest.TestCase):
         d = a * b + b ** 3
         c = c + c + 1
         c = c + 1 + c + (-a)
-        # d = d + d * 2 + (b + a).relu()
-        # d = d + 3 * d + (b - a).relu()
-        d = d + d * 2 + (b + a).tanh()
-        d = d + 3 * d + (b - a).tanh()
+        d = d + d * 2 + (b + a).relu()
+        d = d + 3 * d + (b - a).relu()
         e = c - d
         f = e ** 2
         g = f / 2.0
