@@ -11,6 +11,9 @@ from micrograd.engine import Value
 
 class TestValue(unittest.TestCase):
 
+    # error tolerance for difference between mg & pytorch
+    tol = 1e-4
+
     def test_softplus(self):
         Value.do_autograd = True
         a = Value(-4.0)
@@ -29,13 +32,11 @@ class TestValue(unittest.TestCase):
         y.backward()
         apt, bpt, ypt = a, b, y
 
-        tol = 1e-3
-
         print(f"Micrograd: a.data: {amg.data}, Torch: a.data: {apt.data.item()}")
-        assert abs(amg.data - apt.data.item()) <= tol
+        assert abs(amg.data - apt.data.item()) <= self.tol
 
         print(f"Micrograd: a.grad: {amg.grad}, Torch: a.grad: {apt.grad.item()}")
-        assert abs(amg.grad - apt.grad.item()) <= tol
+        assert abs(amg.grad - apt.grad.item()) <= self.tol
 
     def test_sigmoid(self):
         Value.do_autograd = True
@@ -55,16 +56,14 @@ class TestValue(unittest.TestCase):
         y.backward()
         apt, bpt, ypt = a, b, y
 
-        tol = 1e-3
-
         print(f"Micrograd: a.data: {amg.data}, Torch: a.data: {apt.data.item()}")
-        assert abs(amg.data - apt.data.item()) <= tol
+        assert abs(amg.data - apt.data.item()) <= self.tol
 
         print(f"Micrograd: a.grad: {amg.grad}, Torch: a.grad: {apt.grad.item()}")
-        assert abs(amg.grad - apt.grad.item()) <= tol
+        assert abs(amg.grad - apt.grad.item()) <= self.tol
 
     def test_relu(self):
-        Value.do_autograd = True
+        Value.do_autograd = False
         a = Value(-4.0)
         b = Value(1.0)
         c = 0.3 * a + 0.5 * b + 1.0
@@ -81,13 +80,11 @@ class TestValue(unittest.TestCase):
         y.backward()
         apt, bpt, ypt = a, b, y
 
-        tol = 1e-3
-
         print(f"Micrograd: a.data: {amg.data}, Torch: a.data: {apt.data.item()}")
-        assert abs(amg.data - apt.data.item()) <= tol
+        assert abs(amg.data - apt.data.item()) <= self.tol
 
         print(f"Micrograd: a.grad: {amg.grad}, Torch: a.grad: {apt.grad.item()}")
-        assert abs(amg.grad - apt.grad.item()) <= tol
+        assert abs(amg.grad - apt.grad.item()) <= self.tol
 
     def test_relu_autograd(self):
         Value.do_autograd = True
@@ -107,13 +104,11 @@ class TestValue(unittest.TestCase):
         y.backward()
         apt, bpt, ypt = a, b, y
 
-        tol = 1e-3
-
         print(f"Micrograd: a.data: {amg.data}, Torch: a.data: {apt.data.item()}")
-        assert abs(amg.data - apt.data.item()) <= tol
+        assert abs(amg.data - apt.data.item()) <= self.tol
 
         print(f"Micrograd: a.grad: {amg.grad}, Torch: a.grad: {apt.grad.item()}")
-        assert abs(amg.grad - apt.grad.item()) <= tol
+        assert abs(amg.grad - apt.grad.item()) <= self.tol
 
     def test_sanity_check(self):
         Value.do_autograd = True
@@ -147,13 +142,13 @@ class TestValue(unittest.TestCase):
         y.backward()
         xpt, ypt = x, y
 
-        tolerance = 1e-3
         # forward pass went well
         print(f"ymg.data: {ymg.data}, ypt.data: {ypt.data.item()}")
-        assert abs(ymg.data - ypt.data.item()) <= tolerance
+        assert abs(ymg.data - ypt.data.item()) <= self.tol
+
         # backward pass went well
         print(f"xmg.grad: {xmg.grad}, xpt.grad: {xpt.grad.item()}")
-        assert abs(xmg.grad - xpt.grad.item()) <= tolerance
+        assert abs(xmg.grad - xpt.grad.item()) <= self.tol
 
     def test_more_ops(self):
         Value.do_autograd = True
@@ -191,17 +186,16 @@ class TestValue(unittest.TestCase):
         g.backward()
         apt, bpt, gpt = a, b, g
 
-        tol = 1e-4
         # forward pass went well
         print(f"gmg.data: {gmg.data}, gpt.data: {gpt.data.item()}")
-        assert abs(gmg.data - gpt.data.item()) < tol
+        assert abs(gmg.data - gpt.data.item()) < self.tol
 
         # backward pass went well
         print(f"amg.grad: {amg.grad}, apt.grad: {apt.grad.item()}")
-        assert abs(amg.grad - apt.grad.item()) < tol
+        assert abs(amg.grad - apt.grad.item()) < self.tol
 
         print(f"bmg.grad: {bmg.grad}, bpt.grad: {bpt.grad.item()}")
-        assert abs(bmg.grad - bpt.grad.item()) < tol
+        assert abs(bmg.grad - bpt.grad.item()) < self.tol
 
 
 if __name__ == '__main__':

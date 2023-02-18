@@ -8,7 +8,7 @@ class Value:
     Class for creating scalar value object & storing its gradient.
     """
     # used for computing gradients
-    h = 0.00000001
+    h = 0.0000001
     # TODO(nikwolfe7): Remove autograd flag when we confirm it works
     do_autograd = True
 
